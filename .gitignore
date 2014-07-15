@@ -1,0 +1,4 @@
+/tutorials
+/recitations
+*.pyc
+sftp-config.json
