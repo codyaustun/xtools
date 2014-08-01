@@ -17,7 +17,7 @@ class Activity(object):
         self.person = xdata.get('person_course',conditions={})
                 
         self.mens2_cid = xdata.course_id.replace('/','__')
-        self.nickname = xdata.course_id.split('/')[1]#'2.01x'
+        self.nickname = xdata.course_id.split('/')[1].replace('_','.') #'2.01x'
         self.figpath = '../Analytics_Data/'+self.mens2_cid+'/Activity/'
         print self.figpath
 
@@ -51,7 +51,7 @@ class Activity(object):
             bins = 50
 
         
-        if column not in ['nevents']:
+        if column not in ['nevents','nforum_events']:
             hmin = self.person[column].min()
             hmax = self.person[column].max()
             self.person[self.person.certified==0][column].hist(ax=ax,bins=bins,range=(hmin,hmax),log=True,cumulative=0,
@@ -66,27 +66,43 @@ class Activity(object):
             ax.set_ylabel(r'Count (log scale)',fontdict={'fontsize': 30,'style': 'oblique'})
             ax.set_xlim(0,hmax)
             ax.set_ylim(1,)
-            ax.legend(['$Enrollees$','$Certified$'],loc=1,prop={'size':24},frameon=False)
+            ax.legend(['$Non-Certified$','$Certified$'],loc=1,prop={'size':24},frameon=False)
             ax.set_xticklabels([r'$%d$' % x for x in ax.get_xticks()],fontsize=30)
             ax.set_yticklabels([r'$%d$' % y for y in ax.get_yticks()],fontsize=30)
         
         else:
-            hmin = np.log(self.person[column].min())
+            hmin = 0.0
             hmax = np.log(self.person[column].max())
-            self.person[self.person.certified==False][column].apply(np.log).hist(ax=ax,bins=bins,range=(hmin,hmax),log=False,cumulative=0,
-                                                                   color=xff.colors['neutral'],edgecolor=xff.colors['neutral'])
+            #print hmin,hmax,self.person[column].min()
+
+            min_events = 1
+            if column == 'nevents':
+                min_events = 1
+
+
+            data = self.person[(self.person.certified==False) & (self.person[column]>min_events)][column].apply(np.log)
+            data.hist(ax=ax,bins=bins,range=(hmin,hmax),log=False,cumulative=0,
+                      color=xff.colors['neutral'],edgecolor=xff.colors['neutral'])
             ### Cert Switch
             if cert_switch == True:
-                self.person[self.person.certified==True][column].apply(np.log).hist(ax=ax,bins=bins,range=(hmin,hmax),log=False,cumulative=0,
-                                                                      color=xff.colors['institute'],edgecolor=xff.colors['institute'],alpha=0.8)
+                data = self.person[(self.person.certified==True) & (self.person[column]>min_events)][column].apply(np.log)
+                data.hist(ax=ax,bins=bins,range=(hmin,hmax),log=False,cumulative=0,
+                          color=xff.colors['institute'],edgecolor=xff.colors['institute'],alpha=0.8)
+
             ticks = [1,10,100,1000,10000]
             ax.set_xticks(np.log(ticks))
             ax.set_xticklabels(ticks)
+
+            if column == 'nevents':
+                xlab = 'Clicks'
+            elif column == 'nforum_events':
+                xlab = 'Forum Clicks'
+            else:
+                xlab = column.replace('_',' ')
             
-            xlab = column.replace('_',' ')
-            ax.set_xlabel(r'\ln [ %s ]' % xlab, fontdict={'fontsize': 30,'style': 'oblique'})
+            ax.set_xlabel(r'%s > %d' % (xlab,min_events), fontdict={'fontsize': 30,'style': 'oblique'})
             ax.set_ylabel(r'Count',fontdict={'fontsize': 30,'style': 'oblique'})
-            ax.legend(['$Enrollees$','$Certified$'],loc=1,prop={'size':24},frameon=False)
+            ax.legend(['$Non-Certified$','$Certified$'],loc=1,prop={'size':24},frameon=False)
             ax.set_xticklabels([r'$%d$' % x for x in ticks],fontsize=30)
             ax.set_yticklabels([r'$%d$' % y for y in ax.get_yticks()],fontsize=30)
 
@@ -134,7 +150,7 @@ class Activity(object):
             check = self.distribution_logic(ax1,column,True)       
             
             ### Generalized Plotting functions
-            figsavename = self.figpath+'distribution_'+column.replace(' ','_')+'_'+self.nickname
+            figsavename = self.figpath+'distribution_'+column.replace(' ','_')+'_'+self.nickname.replace('.','_')
             print figsavename
             xff.texify(fig,ax1,figsavename=figsavename+'.png')
 

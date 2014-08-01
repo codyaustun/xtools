@@ -18,7 +18,7 @@ class ProblemMetrics(object):
         # self.caxis = self.caxis.sort('index') # Note, index is a column in the course axis collection.
 
         self.mens2_cid = xdata.course_id.replace('/','__')
-        self.nickname = xdata.course_id.split('/')[1]#'2.01x'
+        self.nickname = xdata.course_id.split('/')[1].replace('_','.') #'2.01x'
         self.institute = xdata.course_id.split('/')[0]#MITx
         self.figpath = '../Analytics_Data/'+self.mens2_cid+'/Problem_Metrics/'
         print self.figpath
@@ -93,13 +93,18 @@ class ProblemMetrics(object):
                 
                 #ax1.set_xticklabels([r'%s' % (x.get_text().lstrip('MITx/8.02x/problem/')) for x in ax1.get_xticklabels()])
                 ax1.set_xticklabels([r'%s' % (cn.split(self.institute+'/'+self.nickname+'/problem/')[1]) for cn in matches.columns],rotation=90)        
-                ax1.set_ylim(0,)
+                
+                if ax1.get_ylim()[1] == 1.0:
+                    ax1.set_ylim(0,2)
+                else:
+                    ax1.set_ylim(0,)
+
                 ax1.set_title(n)
             
                 ax1.set_ylabel('attempts')
             
                 fn = n.replace('/','__').replace(' ','_')
-                figsavename = self.figpath+'prob_attempts_'+n+'_'+self.nickname+'.png'
+                figsavename = self.figpath+'prob_attempts_'+fn+'_'+self.nickname+'.png'
                 fig.savefig(figsavename, bbox_inches='tight', dpi=300)
 
         return None

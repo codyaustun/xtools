@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import os
 import ujson as json
 import xtools.figures.formats as xff
+import mongoengine
+from datetime import date,datetime,timedelta
 
 class DiscussionMetrics(object):
     '''
@@ -18,7 +20,7 @@ class DiscussionMetrics(object):
         # self.caxis = self.caxis.sort('index') # Note, index is a column in the course axis collection.
 
         self.mens2_cid = xdata.course_id.replace('/','__')
-        self.nickname = xdata.course_id.split('/')[1]#'2.01x'
+        self.nickname = xdata.course_id.split('/')[1].replace('_','.') #'2.01x'
         self.institute = xdata.course_id.split('/')[1]#MITx
         self.figpath = '../Analytics_Data/'+self.mens2_cid+'/Discussion_Metrics/'
         print self.figpath
@@ -26,6 +28,14 @@ class DiscussionMetrics(object):
         ### Create Directiory if does not already exist in Analytics Data
         if not os.path.exists(self.figpath):
             os.makedirs(self.figpath)
+
+        ### Course Info
+        self.cinfo = mongoengine.connect('dseaton').dseaton.course_info.find({'mongo_id':xdata.course_id})
+        self.cinfo = pd.DataFrame.from_records([r for r in self.cinfo])
+        self.cinfo = self.cinfo.ix[0,:].T
+
+        self.cinfo['start_date'] = np.datetime64(datetime.strptime(self.cinfo['start_date'],"%Y-%m-%d"))
+        self.cinfo['end_date'] = np.datetime64(datetime.strptime(self.cinfo['end_date'],"%Y-%m-%d"))
 
         ### Load Person Course
         person = xdata.get('person_course')
@@ -170,9 +180,11 @@ class DiscussionMetrics(object):
         data = self.pc_plus[[colx,coly,disc_act,'certified']].copy()
         Jcolx = 0.75
         Jcoly = 0.01
+        bmin = 1.0
+        bscale = 0.2
         data[colx] = data[colx].apply(lambda x: x + Jcolx*(np.random.sample()-Jcolx))
         data[coly] = data[coly].apply(lambda x: x + Jcoly*(np.random.sample()))
-        data[disc_act] = data[disc_act].fillna(0.5)
+        data[disc_act] = data[disc_act].fillna(1.0)
 
         certcut = self.pc_plus[self.pc_plus['certified']==1].grade.min()
 
@@ -180,20 +192,21 @@ class DiscussionMetrics(object):
         ax1 = fig.add_subplot(1,1,1)
         #Non-Certs
         tmp = data[data.certified==0]
-        ax1.scatter(tmp[colx],tmp[coly],s=tmp[disc_act],color=xff.colors['neutral'],label=self.nickname+' (size ~ %s)' % (disc_act))
+        ax1.scatter(tmp[colx],tmp[coly],s=bscale*tmp[disc_act],color=xff.colors['neutral'])
         #Certified
         tmp = data[data.certified==1]
-        ax1.scatter(tmp[colx],tmp[coly],s=tmp[disc_act],color=xff.colors['institute'])
+        ax1.scatter(tmp[colx],tmp[coly],s=bscale*tmp[disc_act],color=xff.colors['institute'])
 
-        ax1.legend(loc=4,prop={'size':18},scatterpoints=1,frameon=True)
+        #ax1.legend(loc=5,prop={'size':18},scatterpoints=1,frameon=False)
         ax1.set_xlim(-0.05,)
-        ax1.set_ylim(-0.05,)
+        ax1.set_ylim(-0.05,1.05)
 
         ### Generalized Plotting functions
         xff.texify(fig,ax1,xlabel=colx,ylabel=coly,
+                   title='bubble size proportional to %s' % (disc_act.replace('_',' ')),
                    tic_size=20,label_size=24,datefontsize=20)
 
-        figsavename = self.figpath+'scatter_'+colx+'_'+coly+'_disc_size_'+self.nickname+'.png'
+        figsavename = self.figpath+'scatter_'+colx+'_'+coly+'_disc_size_'+self.nickname.replace('.','_')+'.png'
         fig.savefig(figsavename, bbox_inches='tight', dpi=300)
 
         return None
@@ -217,7 +230,7 @@ class DiscussionMetrics(object):
         None
         """
 
-        fig = plt.figure(figsize=[14,7])
+        fig = plt.figure(figsize=[20,6])
         ax1 = fig.add_subplot(1,1,1)
 
         ### List of Certified Participants
@@ -226,20 +239,31 @@ class DiscussionMetrics(object):
 
         ### Non-Certified
         post_act = self.forum[ (self.forum.created_at.notnull()) & (self.forum.author_id.isin(certs)==False) ].created_at.apply(lambda x: x.date()).value_counts().sort_index()
-        post_act.plot(ax=ax1,style="-o",ms=3,color=xff.colors['neutral'],label='Non-Certified')
+        post_act.plot(ax=ax1,style="-o",ms=6,lw=2,color=xff.colors['neutral'],label='$Non-Certified$')
         #(post_act.cumsum()/10).plot(ax=ax1,style="-",ms=3,color='Orange')
         
         ### Certified
         post_act = self.forum[ (self.forum.created_at.notnull()) & (self.forum.author_id.isin(certs)) ].created_at.apply(lambda x: x.date()).value_counts().sort_index()
-        post_act.plot(ax=ax1,style="-o",ms=3,color=xff.colors['institute'],label='Certified')
+        post_act.plot(ax=ax1,style="-o",ms=6,lw=2,color=xff.colors['institute'],label='$Certified$')
 
-        ax1 = xff.timeseries_plot_formatter(ax1)
-        ax1.legend(loc=1)
+        xmin = (self.cinfo['start_date'] - np.timedelta64(2,'W')).item().date()
+        xmax = (self.cinfo['end_date'] + np.timedelta64(4,'W')).item().date()
 
-        xff.texify(fig,ax1,ylabel='Forum Text Submissions',tic_size=20,label_size=24,datefontsize=20)
+        ax1.set_xlim(xmin,xmax)
 
-        figsavename = self.figpath+'discussion_activity_'+self.nickname+'.png'
-        fig.savefig(figsavename, bbox_inches='tight', dpi=300)
+        ylim1 = ax1.get_ylim()[1]
+        ax1.vlines([self.cinfo.start_date.item().date(),self.cinfo.end_date.item().date()], 0, ylim1, colors='Gray', lw=1.5, linestyles='--')
+        ax1.set_ylim(0,ylim1)
+
+        ax1 = xff.timeseries_plot_formatter(ax1,interval=1)
+        ax1.legend(loc=1,prop={'size':24},frameon=False)
+
+        figsavename = self.figpath+'discussion_activity_'+self.nickname.replace('.','_')
+        xff.texify(fig,ax1,ylabel='Forum Text Submissions',
+                   tic_size=20,label_size=24,
+                   datefontsize=20,
+                   title=self.nickname,
+                   figsavename=figsavename+'.png')
 
         return None
     

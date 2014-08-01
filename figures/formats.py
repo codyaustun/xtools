@@ -4,7 +4,7 @@ import matplotlib
 colors = {'institute':'FireBrick','neutral':'Silver'}
 
 
-def timeseries_plot_formatter(ax):
+def timeseries_plot_formatter(ax, **kwargs):
         """
         Routines to transform datetime axis labels to a sensible format.
 
@@ -17,6 +17,8 @@ def timeseries_plot_formatter(ax):
         ax : transformed subplot
         """
 
+        interval = kwargs.get('interval', 2)
+
         ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%d.%m.%Y'))
         #print data.index
         formatter = matplotlib.dates.DateFormatter('%b\n%Y')
@@ -24,7 +26,7 @@ def timeseries_plot_formatter(ax):
         # days   = matplotlib.dates.DayLocator()  # every day
         ### Every Sunday Minor Ticks
         sundays   = matplotlib.dates.WeekdayLocator(matplotlib.dates.SUNDAY)
-        months   = matplotlib.dates.MonthLocator(bymonthday=1, interval=2)  # every two months
+        months   = matplotlib.dates.MonthLocator(bymonthday=1, interval=interval)  # every two months
         ax.xaxis.set_minor_locator(sundays)
         ax.xaxis.set_major_locator(months)
         ax.xaxis.set_major_formatter(formatter)
