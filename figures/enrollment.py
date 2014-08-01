@@ -1,15 +1,16 @@
-from ..mongo.data import XData
+import os
+from datetime import datetime, timedelta, date
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import xtools.figures.formats as xff
-from datetime import datetime, timedelta, date
-import os
 import collections
 import json
 import mongoengine
 
+from xtools.mongo.data import XData
+from xtools.figures import formats as xff
 class Enrollment(object):
     '''
     Routines for plotting person course information. 

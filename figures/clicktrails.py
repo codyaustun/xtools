@@ -1,14 +1,16 @@
-from ..mongo.data import XData
-import xtools
+from datetime import date,datetime,timedelta
+import os
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import xtools.figures.formats as xff
-import xtools.figures.course_structure as CS
-from datetime import date,datetime,timedelta
-import os
 import mongoengine
+
+import xtools
+from xtools.mongo.data import XData
+from xtools.figures import formats as xff
+from xtools.figures import course_structure as CS
 
 class ClickTrails(object):
     '''

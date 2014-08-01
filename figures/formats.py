@@ -1,4 +1,3 @@
-
 import matplotlib
 
 colors = {'institute':'FireBrick','neutral':'Silver'}

@@ -13,6 +13,7 @@ import math
 from mongo.data import XData
 from mongo.grading import Grader
 import figures.formats as formats
-import figures.demographics as demographic
 import figures
+import mongo
+import munge
 
