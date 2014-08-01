@@ -32,15 +32,26 @@ class Enrollment(object):
         ### Course Info
         self.cinfo = mongoengine.connect('dseaton').dseaton.course_info.find({'mongo_id':xdata.course_id})
         self.cinfo = pd.DataFrame.from_records([r for r in self.cinfo])
-        self.cinfo = self.cinfo.ix[0,:].T
+        self.cinfo = pd.Series(self.cinfo.ix[0,:].T)
 
-        self.cinfo['start_date'] = datetime.strptime(self.cinfo['start_date'],"%Y-%m-%d")
-        self.cinfo['end_date'] = datetime.strptime(self.cinfo['end_date'],"%Y-%m-%d")
+
+        def date_transform(x):
+            return datetime.strptime(x,"%Y-%m-%d")
+
+        self.cinfo['start_date'] = date_transform(self.cinfo['start_date'])
+        self.cinfo['end_date'] = date_transform(self.cinfo['end_date'])
 
         #------------------------------------------------------------
         ### Enrollment Data
-        self.person.start_time = self.person[self.person.start_time.notnull()==True].start_time.apply(lambda x: np.datetime64(x))
-        self.person['last_event'] = self.person[self.person.last_event.notnull()==True]['last_event'].apply(lambda x: np.datetime64(x) if x[-1]!='d' else np.datetime64(x[:-1]))
+        if 'start_time' in self.person:
+            self.person.start_time = self.person[self.person.start_time.notnull()==True].start_time.apply(lambda x: np.datetime64(x))
+        elif 'start_time_DI' in self.person:
+            self.person.start_time = self.person.start_time_DI
+
+        if 'last_event' in self.person:
+            self.person['last_event'] = self.person[self.person.last_event.notnull()==True]['last_event'].apply(lambda x: np.datetime64(x) if x[-1]!='d' else np.datetime64(x[:-1]))
+        elif 'last_event_DI' in self.person:
+            self.person.last_event = self.person.last_event_DI#.apply(date_transform)
 
         startday = self.person.start_time.dropna().apply(lambda x: x.date()).value_counts().sort_index()
         lastday = self.person.last_event.dropna().apply(lambda x: x.date()).value_counts().sort_index()
@@ -493,12 +504,12 @@ class Enrollment(object):
         #Circles
         SCALE = 1000
         expratio = SCALE*100.*len(self.person[self.person['Only Explored']==1])/len(self.person[self.person['registered']==1])
-        print expratio
+        #print expratio
         if expratio > 17000:
             expratio = 1000
         
         certratio = SCALE*100.*len(self.person[self.person['certified']==1])/len(self.person[self.person['registered']==1])
-        print certratio
+        #print certratio
         if certratio < 1000:
             certratio = 1000
         # csize = 1000  # Ratio and csize give relative size of explored and certified circles.
