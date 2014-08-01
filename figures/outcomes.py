@@ -1,12 +1,14 @@
-from ..mongo.data import XData
+from datetime import date,datetime
+import os
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import xtools.figures.formats as xff
-from datetime import date,datetime
-import os
 import mongoengine
+
+from xtools.figures import formats as xff
+from xtools.mongo.data import XData
 
 class Outcomes(object):
     '''

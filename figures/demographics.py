@@ -1,10 +1,13 @@
-import xtools
-import pandas as pd
-import matplotlib.pyplot as plt
-import xtools.figures.formats as xff
 import os
 import datetime
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
+
+import xtools
+from xtools.figures import formats as xff
 
 class Demographics(object):
     '''

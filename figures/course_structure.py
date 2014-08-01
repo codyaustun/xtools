@@ -1,12 +1,16 @@
-import xtools
+from datetime import date,datetime,timedelta
+import os
+
 import pandas as pd
 import numpy as np
-import xtools.figures.formats as xff
+
 import matplotlib
 import matplotlib.pyplot as plt
-import os
 import mongoengine
-from datetime import date,datetime,timedelta
+
+
+import xtools
+from xtools.figures import formats as xff
 
 class CourseStructure(object):
     '''

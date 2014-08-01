@@ -1,11 +1,13 @@
-from ..mongo.data import XData
+import datetime
+import os
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import formats as xff
-import datetime
-import os
+
+from xtools.figures import formats as xff
+from xtools.mongo.data import XData
 
 class Activity(object):
     '''

@@ -1,13 +1,15 @@
-import xtools
+import os
+from datetime import date,datetime,timedelta
+
 import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import os
 import ujson as json
-import xtools.figures.formats as xff
 import mongoengine
-from datetime import date,datetime,timedelta
+
+import xtools
+from xtools.figures import formats as xff
 
 class DiscussionMetrics(object):
     '''
