@@ -10,9 +10,9 @@
 # import math
 
 # XTools Modules
+import figures.formats as formats
 from mongo.data import XData
 from mongo.grading import Grader
-import figures.formats as formats
 import figures
 import mongo
 import munge

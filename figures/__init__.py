@@ -1,3 +1,4 @@
+import formats
 import activity
 import clicktrails
 import enrollment
@@ -5,6 +6,5 @@ import course_structure
 import demographics
 import discussion_metrics
 import enrollment
-import formats
 import outcomes
 import problem_metrics
