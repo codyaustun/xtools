@@ -25,10 +25,8 @@ class XData:
     provide flexibility and extensibility in fetching and creating data in the 
     MITx and HarvardX mongodb instance
     """
-    def __init__(self, course_id, read_from, write_to = [],
-            logger = ArrayLogger(),
-            catalog = DerivedCollectionsCatalog(),
-            client = MongoClient()):
+    def __init__(self, course_id, read_from, write_to = [], logger = None,
+            catalog = None, client = None):
         '''
         Data Structure charged with getting the data requested from the catalog
         by any means necessary. If the requested data can't be found in any of 
@@ -56,6 +54,11 @@ class XData:
             The default is a MongoClient.
         '''
         self._course_id = course_id
+
+        # Defaults for logger, catalog, and client
+        logger = ArrayLogger() if logger is None else logger
+        catalog = DerivedCollectionsCatalog() if catalog is None else catalog
+        client = MongoClient() if client is None else client    
 
         assert isinstance(catalog, CollectionsCatalog), \
             'catalog must be an instance of CollectionsCatalog or a subclass'

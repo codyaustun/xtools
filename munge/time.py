@@ -54,4 +54,4 @@ def total_time_spent(group):
     durations = data.diff(-1)*-1
     max_time = np.timedelta64(30*60, 's')
     total_time = durations[durations < max_time].sum()
-    return total_time / 10.**9
+    return float(total_time) / 10.**9

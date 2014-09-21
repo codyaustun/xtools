@@ -7,7 +7,7 @@ import re
 from pandas import Series, DataFrame
 
 from ..collection import CollectionStrategy
-from ....munge import time as t
+from xtools.munge import time as t
 
 class PersonModuleStrategy(CollectionStrategy):
 
@@ -52,8 +52,8 @@ class PersonModuleStrategy(CollectionStrategy):
         '''
         # Only want browser events, i.e. source = 1, since server events 
         #   don't indicate user time spent
-        data = context.get('derived_person_object_time',
-            conditions = {'source': 1},
+        data = context.get('tracking_logs',
+            conditions = {'event_source': 'browser'},
             fields = ['time', 'username','module_id'])
 
         # The heavy lifting of this function was separated into 'from_data' in

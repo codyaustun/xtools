@@ -1,6 +1,6 @@
 import abc
 
-class XParser(object):
+class Parser(object):
     '''
     This is an absract base class for XData parsers to ensure all parsers
     provide the required interface
